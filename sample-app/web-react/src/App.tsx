@@ -268,16 +268,45 @@ function App() {
     setIsAzureOpenAI(endpoint.indexOf('azure') > -1);
   }, [endpoint]);
 
+  // Resize panel functionality
+  const handleResizeStart = (e: React.MouseEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    
+    const container = document.querySelector('.container') as HTMLElement;
+    const resizablePanel = document.querySelector('.resizable-panel') as HTMLElement;
+    const initialX = e.clientX;
+    const initialWidth = resizablePanel.offsetWidth;
+    
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const deltaX = moveEvent.clientX - initialX;
+      const newWidth = initialWidth + deltaX;
+      
+      // Set min and max width constraints
+      const minWidth = 250;
+      const maxWidth = Math.min(600, container.offsetWidth * 0.7); // 70% of container width or 600px, whichever is smaller
+      
+      if (newWidth >= minWidth && newWidth <= maxWidth) {
+        resizablePanel.style.width = `${newWidth}px`;
+      }
+    };
+    
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+    
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
+
   return (
     <div className="app-container">
       <div className="container">
-        <div id="received-text-container">
-          {receivedText.map((text, index) => (
-            text === "---" ? <hr key={index} /> : <p key={index}>{text}</p>
-          ))}
-        </div>
-        <div className="controls">
-          <div className="input-group">
+        <div className="resizable-panel" style={{ width: '320px' }}>
+          <div className="resize-handle" onMouseDown={handleResizeStart}></div>
+          <div className="controls">
+            <h2 className="section-heading">Connection Settings</h2>
+          <div className="input-group connection-settings">
             <label htmlFor="endpoint">Endpoint (from .env if available)</label>
             <input 
               id="endpoint" 
@@ -285,18 +314,22 @@ function App() {
               value={endpoint}
               onChange={(e) => setEndpoint(e.target.value)}
               placeholder="Enter resource/endpoint URL"
-              disabled={inputState !== InputState.ReadyToStart}
+              disabled={true}
             />
-            <div className="toggle-group">
-              <label htmlFor="azure-toggle">Azure OpenAI</label>
-              <input 
-                id="azure-toggle" 
-                type="checkbox" 
-                checked={isAzureOpenAI}
-                onChange={(e) => setIsAzureOpenAI(e.target.checked)}
-                disabled={inputState !== InputState.ReadyToStart}
-              />
-            </div>
+          </div>
+          
+          <div className="toggle-group connection-settings">
+            <label htmlFor="azure-toggle">Azure OpenAI</label>
+            <input 
+              id="azure-toggle" 
+              type="checkbox" 
+              checked={isAzureOpenAI}
+              onChange={(e) => setIsAzureOpenAI(e.target.checked)}
+              disabled={true}
+            />
+          </div>
+          
+          <div className="input-group connection-settings">
             <label htmlFor="api-key">API Key (from .env if available)</label>
             <input 
               id="api-key" 
@@ -304,86 +337,99 @@ function App() {
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               placeholder="Enter API key"
-              disabled={inputState !== InputState.ReadyToStart}
+              disabled={true}
             />
+          </div>
+          
+          <div className="input-group connection-settings">
             <label htmlFor="deployment-or-model">Deployment/Model (from .env if available)</label>
             <input 
               id="deployment-or-model" 
               type="text"
               value={deploymentOrModel}
               onChange={(e) => setDeploymentOrModel(e.target.value)}
-              placeholder="Enter deployment/model, e.g. gpt-4o-realtime-preview-2024-10-01"
+              placeholder="gpt-4o-realtime-preview"
+              disabled={true}
+            />
+          </div>
+          
+          <h2 className="section-heading">Model Configuration</h2>
+          <div className="input-group">
+            <label htmlFor="session-instructions">System Message</label>
+            <textarea 
+              id="session-instructions"
+              value={systemMessage}
+              onChange={(e) => setSystemMessage(e.target.value)}
+              placeholder="デフォルトでは旅行プランナーの設定になっています。必要に応じて編集してください。"
+              rows={4}
               disabled={inputState !== InputState.ReadyToStart}
             />
           </div>
+          
           <div className="input-group">
-            <div className="button-group">
-              <button 
-                onClick={startRealtime}
-                disabled={inputState !== InputState.ReadyToStart}
-              >
-                Record
-              </button>
-              <button 
-                onClick={stopRealtime}
-                disabled={inputState !== InputState.ReadyToStop}
-              >
-                Stop
-              </button>
-            </div>
-            <div className="input-group">
-              <label htmlFor="session-instructions">System Message</label>
-              <textarea 
-                id="session-instructions"
-                value={systemMessage}
-                onChange={(e) => setSystemMessage(e.target.value)}
-                placeholder="デフォルトでは旅行プランナーの設定になっています。必要に応じて編集してください。"
-                rows={4}
-                disabled={inputState !== InputState.ReadyToStart}
-              />
-            </div>
-            <div className="input-group">
-              <label htmlFor="temperature">Temperature</label>
-              <input 
-                id="temperature" 
-                type="number"
-                min="0.6"
-                max="1.2"
-                step="0.05"
-                value={temperature}
-                onChange={(e) => setTemperature(e.target.value)}
-                placeholder="0.6-1.2 (default 0.8)"
-                disabled={inputState !== InputState.ReadyToStart}
-              />
-            </div>
-            <div className="input-group">
-              <label htmlFor="voice">Voice</label>
-              <select 
-                id="voice"
-                value={voice}
-                onChange={(e) => setVoice(e.target.value)}
-                disabled={inputState !== InputState.ReadyToStart}
-              >
-                <option value=""></option>
-                <option value="alloy">alloy</option>
-                <option value="ash">ash</option>
-                <option value="ballad">ballad</option>
-                <option value="coral">coral</option>
-                <option value="echo">echo</option>
-                <option value="sage">sage</option>
-                <option value="shimmer">shimmer</option>
-                <option value="verse">verse</option>
-              </select>
-            </div>
-            <div className="button-group">
-              <button 
-                onClick={clearAll}
-                type="button"
-              >
-                Clear all
-              </button>
-            </div>
+            <label htmlFor="temperature">Temperature</label>
+            <input 
+              id="temperature" 
+              type="text"
+              value={temperature}
+              onChange={(e) => setTemperature(e.target.value)}
+              placeholder="0.6-1.2 (default 0.8)"
+              disabled={inputState !== InputState.ReadyToStart}
+            />
           </div>
+          
+          <div className="input-group">
+            <label htmlFor="voice">Voice</label>
+            <select 
+              id="voice"
+              value={voice}
+              onChange={(e) => setVoice(e.target.value)}
+              disabled={inputState !== InputState.ReadyToStart}
+            >
+              <option value="">Select voice...</option>
+              <option value="alloy">alloy</option>
+              <option value="ash">ash</option>
+              <option value="ballad">ballad</option>
+              <option value="coral">coral</option>
+              <option value="echo">echo</option>
+              <option value="sage">sage</option>
+              <option value="shimmer">shimmer</option>
+              <option value="verse">verse</option>
+            </select>
+          </div>
+          
+          <div className="button-group">
+            <button 
+              onClick={startRealtime}
+              disabled={inputState !== InputState.ReadyToStart}
+            >
+              Record
+            </button>
+            <button 
+              className="stop-button"
+              onClick={stopRealtime}
+              disabled={inputState !== InputState.ReadyToStop}
+            >
+              Stop
+            </button>
+          </div>
+          
+          <div className="button-group">
+            <button 
+              className="clear-button"
+              onClick={clearAll}
+              type="button"
+            >
+              Clear all
+            </button>
+          </div>
+        </div>
+        </div>
+        
+        <div id="received-text-container">
+          {receivedText.map((text, index) => (
+            text === "---" ? <hr key={index} /> : <p key={index}>{text}</p>
+          ))}
         </div>
       </div>
     </div>
