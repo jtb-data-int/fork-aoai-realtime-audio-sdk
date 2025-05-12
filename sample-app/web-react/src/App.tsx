@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { LowLevelRTClient } from 'rt-client'
 import { Player } from './utils/Player'
 import { Recorder } from './utils/Recorder'
+import { processQueryForStaticData } from './utils/StaticDataProvider'
 import './App.css'
 
 // rt-clientの型定義
@@ -176,13 +177,33 @@ function App() {
             }
             break;
           case "conversation.item.input_audio_transcription.completed":
+            const userTranscript = message.transcript;
+            
             setReceivedText(prev => {
               const newTexts = [...prev];
               if (latestInputSpeechBlockRef.current >= 0) {
-                newTexts[latestInputSpeechBlockRef.current] += ` User: ${message.transcript}`;
+                newTexts[latestInputSpeechBlockRef.current] += ` User: ${userTranscript}`;
               }
               return newTexts;
             });
+            
+            // Check if this query should receive static data response
+            const staticData = processQueryForStaticData(userTranscript);
+            if (staticData && realtimeStreamingRef.current) {
+              // Update the system message with the static data
+              const updatedSystemMessage = `${systemMessage}\n\n【アシスタントへの追加情報】\n${staticData}`;
+              
+              // Send the updated system message to the AI
+              await realtimeStreamingRef.current.send({
+                type: "session.update",
+                session: {
+                  instructions: updatedSystemMessage
+                }
+              });
+              
+              // Log that static data was injected (for debugging)
+              console.log("Static flight data injected into conversation");
+            }
             break;
           case "response.done":
             setReceivedText(prev => [...prev, "---"]);
