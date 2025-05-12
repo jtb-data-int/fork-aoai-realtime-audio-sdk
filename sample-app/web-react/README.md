@@ -52,3 +52,23 @@ export default tseslint.config({
   },
 })
 ```
+
+## HTTPS Setup for Microphone Access
+
+Modern browsers require HTTPS for accessing the microphone API. To set up HTTPS with a self-signed certificate:
+
+1. Generate self-signed certificates:
+   ```bash
+   npm run generate-cert
+   ```
+
+2. Start the development server with HTTPS:
+   ```bash
+   npm run dev:https
+   ```
+
+3. Access the application at https://localhost:8502 or https://YOUR_IP:8502
+
+When accessing the site for the first time, your browser will show a security warning because of the self-signed certificate. Click "Advanced" and then "Proceed" to accept the certificate.
+
+> Note: The certificates are generated in the `certs` directory, which is excluded from Git. Each developer should generate their own certificates locally.
