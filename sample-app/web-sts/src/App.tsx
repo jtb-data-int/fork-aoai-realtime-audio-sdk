@@ -328,7 +328,7 @@ function App() {
           <div className="controls">
             <h2 className="section-heading">Connection Settings</h2>
           <div className="input-group connection-settings">
-            <label htmlFor="endpoint">Endpoint (from .env if available)</label>
+            <label htmlFor="endpoint">Endpoint</label>
             <input 
               id="endpoint" 
               type="text" 
@@ -351,7 +351,7 @@ function App() {
           </div>
           
           <div className="input-group connection-settings">
-            <label htmlFor="api-key">API Key (from .env if available)</label>
+            <label htmlFor="api-key">API Key</label>
             <input 
               id="api-key" 
               type="password"
@@ -363,7 +363,7 @@ function App() {
           </div>
           
           <div className="input-group connection-settings">
-            <label htmlFor="deployment-or-model">Deployment/Model (from .env if available)</label>
+            <label htmlFor="deployment-or-model">Deployment/Model</label>
             <input 
               id="deployment-or-model" 
               type="text"
@@ -376,7 +376,7 @@ function App() {
           
           <h2 className="section-heading">Model Configuration</h2>
           <div className="input-group">
-            <label htmlFor="session-instructions">System Message</label>
+            <label htmlFor="session-instructions">System Message(AIへの指示)</label>
             <textarea 
               id="session-instructions"
               value={systemMessage}
@@ -424,14 +424,14 @@ function App() {
               onClick={startRealtime}
               disabled={inputState !== InputState.ReadyToStart}
             >
-              Record
+              会話を開始
             </button>
             <button 
               className="stop-button"
               onClick={stopRealtime}
               disabled={inputState !== InputState.ReadyToStop}
             >
-              Stop
+              会話を停止
             </button>
           </div>
           
@@ -441,7 +441,7 @@ function App() {
               onClick={clearAll}
               type="button"
             >
-              Clear all
+              会話履歴をクリア
             </button>
           </div>
         </div>
